@@ -1,0 +1,53 @@
+package com.greeting.client;
+
+import com.proto.dummy.DummyServiceGrpc;
+import com.proto.greet.GreetRequest;
+import com.proto.greet.GreetResponse;
+import com.proto.greet.GreetServiceGrpc;
+import com.proto.greet.Greeting;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+
+import javax.net.ssl.SSLException;
+import java.io.File;
+
+public class GreetingClient {
+
+    public static void main(String[] args) throws SSLException {
+        System.out.println("GRPC Client");
+
+            ManagedChannel chanel = ManagedChannelBuilder.forAddress("localhost",50051)
+                .usePlaintext()
+                .build();
+        System.out.println("Creating stub");
+
+
+        //Secure Channel
+        ManagedChannel secureChannel = NettyChannelBuilder.forAddress("localhost", 50051)
+                .sslContext(GrpcSslContexts.forClient().trustManager(new File("sslcert/ca.crt")).build())
+                .build();
+
+        //DummyServiceGrpc.DummyServiceBlockingStub stub = DummyServiceGrpc.newBlockingStub(chanel);
+
+        GreetServiceGrpc.GreetServiceBlockingStub greetCLient = GreetServiceGrpc.newBlockingStub(secureChannel);
+
+        Greeting greeting = Greeting.newBuilder()
+                .setFirstName("Prashant")
+                .setLastName("Thakur")
+                .build();
+
+        GreetRequest req = GreetRequest.newBuilder().
+                setGreeting(greeting)
+                .build();
+
+        GreetResponse response = greetCLient.greet(req);
+
+        System.out.println("Response: "+response.getResult());
+        System.out.println("Shutting Down Channel");
+        chanel.shutdown();
+
+
+    }
+}
