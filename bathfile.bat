@@ -99,7 +99,7 @@ cmake --build . --config Release --target install || goto :error
 popd
 
 goto :EOF
-
+cmake -G"Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=C:\Users\prashant\testinstall9a -DOPENSSL_ROOT_DIR=C:\Users\prashant\Desktop\zipdir\openssl\Lib\x64\RELEASE -DZLIB_ROOT=C:\Users\prashant\testinstall9a ..
 :error
 echo Failed!
 exit /b %errorlevel%
