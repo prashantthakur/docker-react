@@ -32,6 +32,34 @@ add_custom_command(
         --plugin=protoc-gen-grpc="${gRPC_CPP_PLUGIN_EXECUTABLE}"
         "${hw_proto}"
       DEPENDS "${hw_proto}")
+      
+      
+      set(sln_binpath ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.sln)
+if(EXISTS ${sln_binpath})
+    # Load solution file from bin-dir and change the relative references to 
+    # project files so that the in memory copy is as if it had been built in 
+    # the source dir.
+    file(RELATIVE_PATH prefix 
+        ${CMAKE_CURRENT_SOURCE_DIR} 
+        ${CMAKE_CURRENT_BINARY_DIR})
+    file(READ ${sln_binpath} sln_content)
+    string(REGEX REPLACE 
+        "\"([^\"]+).vcxproj\""
+        "\"${prefix}/\\1.vcxproj\"" 
+        sln_content
+        "${sln_content}")
+
+    # Compare the updated contents with the existing source path sln, if it
+    # exists and is the same we don't want to disturb VS by touching it.
+    set(sln_srcpath ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.sln)
+    set(old_content "")
+    if(EXISTS ${sln_srcpath})
+        file(READ ${sln_srcpath} old_content)
+    endif()
+    if(NOT old_content STREQUAL sln_content)
+        file(WRITE ${sln_srcpath} ${sln_content})
+    endif()
+endif()
 
 # Generated include directory
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
